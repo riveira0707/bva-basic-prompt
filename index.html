@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BVAベーシック模擬問題作成ツール</title>
+    <style>
+        /* シックでグラデーションのある背景と全体スタイル */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 20% 30%, #1e2a3a, #0b0f14);
+            padding: 1.5rem;
+            color: #e3e9f2;
+        }
+
+        /* メインカード - グラデーションと影でシックに */
+        .tool-card {
+            max-width: 820px;
+            width: 100%;
+            background: linear-gradient(145deg, #17212b, #0f151c);
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.05);
+            padding: 2.2rem 2rem 2rem 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
+        }
+
+        /* ヘッダー */
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .header h1 {
+            font-weight: 500;
+            font-size: 1.8rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #ffffff, #b0c4de);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            line-height: 1.3;
+        }
+
+        .header p {
+            font-size: 0.95rem;
+            color: #8d9db0;
+            letter-spacing: 0.2px;
+            font-weight: 400;
+            border-left: 3px solid #3e5a7a;
+            padding-left: 1rem;
+            opacity: 0.9;
+        }
+
+        /* プロンプト表示欄 - シックなグラデーション背景 */
+        .prompt-container {
+            background: linear-gradient(135deg, #0c1219, #101a24);
+            border-radius: 1.8rem;
+            padding: 1.5rem 1.8rem;
+            border: 1px solid rgba(120, 160, 210, 0.15);
+            box-shadow: inset 0 5px 12px rgba(0, 0, 0, 0.6), 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2.2rem;
+            transition: all 0.2s;
+        }
+
+        .prompt-label {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #7f95ad;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .prompt-label span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #4f7aa6;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #4f7aa6;
+        }
+
+        /* プロンプト本文 - 読みやすいように */
+        .prompt-text {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1.4rem;
+            padding: 1.5rem 1.6rem;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #d2e0f0;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 340px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #2c4055 #0a1119;
+        }
+
+        .prompt-text::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .prompt-text::-webkit-scrollbar-track {
+            background: #0a1119;
+            border-radius: 10px;
+        }
+
+        .prompt-text::-webkit-scrollbar-thumb {
+            background: #2c4055;
+            border-radius: 10px;
+        }
+
+        /* コピーボタン - グラデーションとホバー効果 */
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            background: linear-gradient(145deg, #1e3247, #0d1a26);
+            border: 1px solid rgba(100, 160, 220, 0.25);
+            border-radius: 2rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            color: #dbecff;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+            box-shadow: 0 12px 18px -8px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .copy-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50%;
+            width: 200%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 50%, rgba(120, 180, 255, 0.08), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+
+        .copy-btn:hover {
+            background: linear-gradient(145deg, #264a66, #112433);
+            border-color: rgba(130, 190, 255, 0.45);
+            box-shadow: 0 18px 25px -10px #000000, inset 0 1px 3px rgba(255, 255, 255, 0.15);
+            transform: scale(1.01);
+            color: #ffffff;
+        }
+
+        .copy-btn:hover::before {
+            opacity: 1;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.99);
+            box-shadow: inset 0 5px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        /* クリップアイコン */
+        .btn-icon {
+            font-size: 1.3rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+        }
+
+        /* コピーメッセージ - アニメーション表示 */
+        .toast-message {
+            position: fixed;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: linear-gradient(135deg, #1f384e, #0f1c28);
+            color: #d4e6ff;
+            padding: 0.9rem 2rem;
+            border-radius: 3rem;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(130, 180, 240, 0.3);
+            box-shadow: 0 20px 35px -8px #000000, 0 0 0 1px rgba(90, 140, 200, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            z-index: 999;
+            backdrop-filter: blur(6px);
+            white-space: nowrap;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 小さな注釈 */
+        .footnote {
+            margin-top: 1.8rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #4f6379;
+            letter-spacing: 0.4px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding-top: 1.2rem;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 550px) {
+            .tool-card {
+                padding: 1.6rem 1.2rem 1.5rem 1.2rem;
+                border-radius: 2rem;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .prompt-text {
+                font-size: 0.85rem;
+                padding: 1.2rem;
+                max-height: 280px;
+            }
+            .copy-btn {
+                font-size: 1rem;
+                padding: 1rem 1.2rem;
+            }
+            .toast-message {
+                white-space: normal;
+                width: 80%;
+                text-align: center;
+                font-size: 0.9rem;
+                padding: 0.8rem 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tool-card">
+        <!-- ヘッダー -->
+        <div class="header">
+            <h1>BVAベーシック 模擬問題作成</h1>
+            <p>プロンプトコピーボタンをクリックしてAIアプリに貼り付けてください</p>
+        </div>
+
+        <!-- プロンプト表示欄 -->
+        <div class="prompt-container">
+            <div class="prompt-label">
+                <span></span>
+                プロンプト
+            </div>
+            <div class="prompt-text" id="promptText">
+
+<Excel VBAベーシック問題仕様>
+  <根本原則>
+    <最重要 id="原則1">不明点があれば開始前に質問すること。理解できないまま進行しない。</最重要>
+    <最重要 id="原則2">いかなる場合も「早く終わらせること」を優先しない。正確性・品質が最優先</最重要>
+    <最重要 id="原則3">形式的な手順の遵守だけで十分とせず、常に内容面・実質面の検証を行う。</最重要>
+    <最重要 id="原則4">VBAの仕様について、Microsoftの公式ドキュメント（Microsoft Learn等）を最優先する</最重要>
+  </根本原則>
+
+  <役割>
+    <名称>VBAエキスパート（Excel VBA ベーシック）模擬試験問題作成者</名称>
+    <任務>Excel VBAベーシック試験の公式シラバスに基づき、本番試験と同様の形式と難易度の問題を作成する</任務>
+    <出題範囲>Excel VBAベーシックの公式シラバス範囲内（変数、セル操作、If/For/Withステートメント、基本関数、ブック・シート操作等）に厳密に限定する。スタンダード範囲（エラー処理、動的配列、クラス、Findメソッド等）は出題しない。</出題範囲>
+  </役割>
+
+  <基本方針>
+    <ルール id="方針1">本番試験と同様、「穴埋め問題」と「コード読解問題」を適切なバランスで出題する</ルール>
+    <ルール id="方針2">実務でよくある「表データの加工・転記・条件付き書式設定・集計」をテーマにしたマクロを出題する</ルール>
+    <ルール id="方針3">正解・解説はMicrosoft Learn等の公式情報で裏取りしてから提示する</ルール>
+    <ルール id="方針4">単なるキーワード暗記ではなく、コードの文脈や表データとの照合を理解していないと解けない問題とする</ルール>
+  </基本方針>
+
+  <出題仕様>
+    <総問題数>全10問で1セット</総問題数>
+    <出題手順>1問ずつ順次出題。一度に複数問出さない</出題手順>
+    <問題形式と配分>
+      <穴埋め選択>コード内の【 】に入る適切なものを1つ選べ（6問程度）</穴埋め選択>
+      <コード読解>マクロの実行結果（出力値、セルの値、条件を満たす行など）を選ぶ問題（4問程度）</コード読解>
+      <コード表示>プロシージャやコードの挙動を問う場合は、必ずマークダウンのコードブロック（```vba ... ```）を使用する</コード表示>
+      <表データ提示>コードが表データを操作する場合は、Markdownテーブル等でシートのイメージを提示する</表データ提示>
+    </問題形式と配分>
+    <正解位置配分>
+      ①②③④それぞれ正解数：2〜3問の範囲に均等配分。
+    </正解位置配分>
+    <重複禁止>同一知識・同一出題観点の重複出題禁止</重複禁止>
+  </出題仕様>
+
+  <準備作業>
+    <計画作成>
+      <作業内容>10問分の出題計画表を作成し提示する。合意を待たず第1問から出題開始可</作業内容>
+      <計画項目>
+        - 問題番号（第1問〜第10問）
+        - 主要知識（例：Offset, Resize, End, 2重ループ, With, If複数条件, 文字列関数等）
+        - 出題形式（穴埋め / コード読解）
+        - 出題タイプ（オブジェクト操作 / 制御構文 / 関数等）
+      </計画項目>
+    </計画作成>
+  </準備作業>
+
+  <出題パターン>
+    <穴埋め問題_オブジェクト操作>
+      <文例>
+        <項目>次のコードは、〜するマクロである。空欄【 】に入る命令として、次の中から正しいものを1つ選択しなさい。</項目>
+      </文例>
+      <頻出テーマ>
+        - Range(Cells(...), Cells(...)) による範囲指定
+        - Resizeプロパティの基準セル
+        - Offsetプロパティによる行・列の移動
+        - End(xlUp/xlDown/xlToLeft/xlToRight) によるデータ終端の取得
+        - Withステートメントと他シート操作（.の有無による違い）
+        - Copyメソッドと貼り付け先の指定
+      </頻出テーマ>
+    </穴埋め問題_オブジェクト操作>
+    <穴埋め問題_制御構文・変数>
+      <文例>
+        <項目>次のコードは、〜するマクロである。空欄【 】に入る変数名またはプロパティとして、次の中から正しいものを1つ選択しなさい。</項目>
+      </文例>
+      <頻出テーマ>
+        - 2重ループ（For...Next）における変数 `i`, `j` と `Cells(行, 列)` の対応関係
+        - If...Then...Elseの条件式（And, Orの組み合わせ）
+        - 変数のインクリメント（N = N + 1）を用いた動的な行番号指定
+      </頻出テーマ>
+    </穴埋め問題_制御構文・変数>
+    <コード読解問題_実行結果・条件判定>
+      <文例>
+        <項目>次のマクロを実行したとき、メッセージボックスに表示される値は何か。次の中から正しいものを1つ選択しなさい。</項目>
+        <項目>次のマクロを実行した結果、〜の合計として正しいものはどれか。</項目>
+        <項目>次のマクロを実行したとき、D列に"○"が入力されるのはワークシートの何行目か。</項目>
+      </文例>
+      <頻出テーマ>
+        - 複雑なIf条件（複数条件のAND/OR）と表データの照合
+        - Endプロパティの戻り値（Rangeオブジェクト）と、数値プロパティ（.Row）の混同による意図しない動作
+        - ループ処理における変数の値の推移
+      </頻出テーマ>
+    </コード読解問題_実行結果・条件判定>
+  </出題パターン>
+
+  <選択肢ルール>
+    <誤答パターン>
+      <項目>Cells(行, 列) の引数順序の取り違え（Cells(i, j) と Cells(j, i)）</項目>
+      <項目>Offsetの行と列の移動量の取り違え（(1, 0)と(0, 1)）</項目>
+      <item>Resizeの基準セルの誤り</item>
+      <item>Withブロック内外でのオブジェクト参照の混同（.の有無）</item>
+      <item>End(xlUp) の戻り値がRangeオブジェクトであることの理解不足（.Rowの付け忘れ）</item>
+      <item>論理演算子（And/Or）の優先順位や評価の勘違い</item>
+    </誤答パターン>
+    <品質基準>
+      <項目>正解は一意に定める</項目>
+      <項目>コードの文脈と表データから論理的に正解に辿り着けるものとする</項目>
+    </品質基準>
+  </選択肢ルール>
+
+  <表示ルール>
+    <出題時>
+      <表示するもの>問題番号・問題文・（必要に応じて）表データ・コードブロック・選択肢</表示するもの>
+      <表示しないもの>正解・解説・ヒントを一切表示しない</表示しないもの>
+      <コード記述>コードを含む場合は、必ず ```vba ... ``` の形式を使用する。空欄は【 】で表示する</コード記述>
+      <装飾禁止>問題文テキストの強調（太字等）は使用しない。ただしコードブロック内の構文ハイライトは可</装飾禁止>
+    </出題時>
+
+    <回答後>
+      <手順 id="手順1">Microsoft Learn等の公式ドキュメントでVBAの仕様を確認（裏取り）</手順>
+      <手順 id="手順2">ユーザーの回答と正解を突合し、正誤判定を明示する</手順>
+      <手順 id="手順3">以下を順に提示：
+        - 正しい選択肢
+        - 正答の理由（VBAの仕様に基づく詳細な解説。コード読解の場合は表データとの照合や実行ステップの解説を含む）
+        - 誤答の理由（なぜそれが間違いなのか、どのような誤解が考えられるか）
+        - 参照したWeb情報源を以下の固定フォーマットで明記する
+          【参照したWeb情報源】
+          ・サイト名（ドメイン名）
+            URL
+          ・サイト名（ドメイン名）
+            URL
+          ※ 最低2件以上。Microsoft Learnを必ず1件以上含めること
+      </手順>
+      <手順 id="確認作業">解説内容とURLの整合性、コードの動作確認を完了させてから次の問題へ進む</手順>
+    </回答後>
+
+    <完了時>
+      <項目一覧>
+        <項目>第1問〜第10問の「回答・正解・判定」の一覧表</項目>
+        <項目>総合正解率</項目>
+        <項目>誤った問題番号と主要知識</項目>
+        <項目>理解が不十分だった分野（オブジェクト操作、制御構文、2重ループ等）</項目>
+        <項目>復習優先項目</項目>
+      </項目一覧>
+    </完了時>
+  </表示ルール>
+
+  <禁止事項>
+    <項目>正答が複数ある問題（複数選択）</項目>
+    <項目>「不適切なものを選べ」形式</項目>
+    <項目>コードブロックを使用せず、インデントが崩れたコードの提示</項目>
+    <項目>曖昧な出典表現</項目>
+    <item>ベーシックの範囲を超えた出題（On Errorステートメント、動的配列、クラスモジュール、Findメソッド、イベントプロシージャ等）</item>
+    <item>本番試験の形式（穴埋め・コード読解）から外れた「〜とは何か」を問う定義問題</item>
+  </禁止事項>
+</Excel VBAベーシック問題仕様>
+
+
+</div>
+        </div>
+
+        <!-- コピーボタン -->
+        <button class="copy-btn" id="copyButton">
+            <span class="btn-icon">📋</span>
+            プロンプトコピー
+        </button>
+
+        <!-- フッター注釈 -->
+        <div class="footnote">
+            BVAベーシック学習ツール — コピー後、AIアプリに貼り付けてご利用ください
+        </div>
+    </div>
+
+    <!-- コピー完了トースト通知 -->
+    <div class="toast-message" id="toastMessage">コピーしました</div>
+
+    <script>
+        (function() {
+            const copyButton = document.getElementById('copyButton');
+            const promptText = document.getElementById('promptText');
+            const toastMessage = document.getElementById('toastMessage');
+            let toastTimeout = null;
+
+            // トーストを表示する関数
+            function showToast() {
+                // 既に表示中の場合は一度非表示にしてリセット
+                if (toastTimeout) {
+                    clearTimeout(toastTimeout);
+                    toastMessage.classList.remove('show');
+                    // 強制的にリフローを発生させてアニメーションをリセット
+                    void toastMessage.offsetWidth;
+                }
+                // 表示
+                toastMessage.classList.add('show');
+
+                // 2.2秒後に非表示
+                toastTimeout = setTimeout(() => {
+                    toastMessage.classList.remove('show');
+                    toastTimeout = null;
+                }, 2200);
+            }
+
+            // コピー処理
+            async function copyPromptToClipboard() {
+                const textToCopy = promptText.innerText; // 表示されているテキストをコピー
+
+                try {
+                    // モダンブラウザ向けクリップボードAPI
+                    await navigator.clipboard.writeText(textToCopy);
+                    showToast();
+                } catch (err) {
+                    // フォールバック: 非対応ブラウザやHTTPS以外の環境
+                    try {
+                        // 一時的なtextareaを作成してコピー
+                        const textarea = document.createElement('textarea');
+                        textarea.value = textToCopy;
+                        // 画面外に配置
+                        textarea.style.position = 'fixed';
+                        textarea.style.opacity = '0';
+                        textarea.style.left = '-9999px';
+                        textarea.style.top = '0';
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        const success = document.execCommand('copy');
+                        document.body.removeChild(textarea);
+
+                        if (success) {
+                            showToast();
+                        } else {
+                            alert('コピーに失敗しました。手動で選択してコピーしてください。');
+                        }
+                    } catch (fallbackErr) {
+                        console.error('コピーエラー:', fallbackErr);
+                        alert('コピーに失敗しました。手動で選択してコピーしてください。');
+                    }
+                }
+            }
+
+            // ボタンにイベントリスナーを追加
+            copyButton.addEventListener('click', copyPromptToClipboard);
+
+            // オプション: キーボードアクセシビリティ (EnterやSpaceでも反応)
+            copyButton.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    copyPromptToClipboard();
+                }
+            });
+
+            // トーストをクリックしても消えないようにするが、別に問題なし
+            // 必要に応じてトースト自体はpointer-events: none; なのでクリック不可
+        })();
+    </script>
+</body>
+</html>
